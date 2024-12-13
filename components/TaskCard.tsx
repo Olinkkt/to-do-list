@@ -35,14 +35,6 @@ export default function TaskCard({ task, onUpdateTask, onDeleteTask }: TaskCardP
     setShowDeleteModal(false)
   }
 
-  const priorityColors: Record<Priority, string> = {
-    'Nízká': 'bg-green-500',
-    'Střední': 'bg-yellow-500',
-    'Vysoká': 'bg-red-500'
-  }
-
-  const priorityColor = priorityColors[task.priority]
-
   return (
     <>
       <div className={`task-card ${task.completed ? 'opacity-60' : ''}`}>

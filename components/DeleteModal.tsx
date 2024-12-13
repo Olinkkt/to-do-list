@@ -13,7 +13,7 @@ export default function DeleteModal({ isOpen, onClose, onConfirm, taskTitle }: D
       <div className="bg-gray-900/95 border border-white/20 rounded-2xl p-6 max-w-md w-full space-y-6 animate-fade-in shadow-xl">
         <h2 className="text-xl font-semibold text-white">Smazat úkol?</h2>
         <p className="text-white/90">
-          Opravdu chcete smazat úkol "<span className="text-pink-400 font-medium">{taskTitle}</span>"?
+          Opravdu chcete smazat úkol &ldquo;{taskTitle}&rdquo;?
           <br />
           Tuto akci nelze vrátit zpět.
         </p>
