@@ -2,26 +2,66 @@
 @tailwind components;
 @tailwind utilities;
 
-:root {
-  --background: #ffffff;
-  --foreground: #171717;
-}
+@layer components {
+  .glassmorphism {
+    @apply bg-white/10 backdrop-blur-md border border-white/20 shadow-xl;
+  }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
+  .modern-input {
+    @apply w-full p-4
+    bg-black/40 backdrop-blur-sm
+    text-white placeholder-gray-400 
+    border border-white/10
+    focus:border-pink-500/50 focus:ring-2 focus:ring-pink-500/20
+    shadow-inner shadow-black/20
+    transition-all duration-200
+    hover:bg-black/50;
+  }
+
+  .modern-select {
+    @apply modern-input pr-10 cursor-pointer appearance-none;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24' stroke='rgba(255,255,255,0.3)'%3E%3Cpath stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M19 9l-7 7-7-7'/%3E%3C/svg%3E");
+    background-position: right 0.75rem center;
+    background-repeat: no-repeat;
+    background-size: 1.25rem;
+  }
+
+  .modern-select::-ms-expand {
+    display: none;
+  }
+
+  .modern-select option {
+    @apply bg-gray-900 text-white;
+  }
+
+  .task-card {
+    @apply glassmorphism rounded-xl p-6 mb-4
+    transition-all duration-300 hover:scale-[1.02]
+    hover:bg-white/20 hover:shadow-2xl;
+  }
+
+  .gradient-button {
+    @apply bg-gradient-to-r from-pink-500 to-purple-500 
+    text-white font-medium p-4 rounded-xl
+    hover:opacity-90 transition-all duration-200 
+    shadow-lg hover:shadow-pink-500/30
+    transform hover:scale-[1.02]
+    border border-white/20;
+  }
+
+  .animate-fade-in {
+    animation: fadeIn 0.2s ease-out;
   }
 }
 
-body {
-  color: var(--foreground);
-  background: var(--background);
-  font-family: Arial, Helvetica, sans-serif;
-}
-
-@layer utilities {
-  .text-balance {
-    text-wrap: balance;
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: scale(0.95);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
   }
 }
+
