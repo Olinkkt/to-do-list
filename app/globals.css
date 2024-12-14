@@ -52,6 +52,122 @@
   .animate-fade-in {
     animation: fadeIn 0.2s ease-out;
   }
+
+  /* Moderní scrollbar */
+  .custom-scrollbar {
+    /* Pro Firefox */
+    scrollbar-width: thin;
+    scrollbar-color: rgba(255, 255, 255, 0.2) transparent;
+  }
+
+  /* Pro Chrome, Safari a další */
+  .custom-scrollbar::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+  }
+
+  .custom-scrollbar::-webkit-scrollbar-track {
+    background: transparent;
+  }
+
+  .custom-scrollbar::-webkit-scrollbar-thumb {
+    background: rgba(255, 255, 255, 0.2);
+    border-radius: 4px;
+    transition: background 0.2s;
+  }
+
+  .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+    background: rgba(255, 255, 255, 0.3);
+  }
+
+  /* Skrytí scrollbaru při nepoužívání (volitelné) */
+  .custom-scrollbar::-webkit-scrollbar-thumb:vertical {
+    min-height: 32px;
+  }
+
+  .custom-scrollbar::-webkit-scrollbar-thumb:horizontal {
+    min-width: 32px;
+  }
+
+  /* Styly pro DatePicker */
+  .deadline-calendar {
+    @apply bg-gray-900/95 border border-white/10 rounded-2xl shadow-2xl backdrop-blur-sm !important;
+    box-shadow: 0 0 40px rgba(0, 0, 0, 0.5);
+  }
+
+  .deadline-calendar .react-datepicker__header {
+    @apply bg-transparent border-b border-white/10 !important;
+  }
+
+  .deadline-calendar .react-datepicker__current-month,
+  .deadline-calendar .react-datepicker__day-name,
+  .deadline-calendar .react-datepicker-time__header {
+    @apply text-white/90 font-medium !important;
+  }
+
+  .deadline-calendar .react-datepicker__day {
+    @apply text-white/70 hover:bg-white/10 rounded-lg 
+    transition-all duration-200 !important;
+  }
+
+  .deadline-calendar .react-datepicker__day--selected {
+    @apply bg-gradient-to-r from-pink-500 to-purple-500
+    text-white shadow-lg shadow-pink-500/20 !important;
+  }
+
+  .deadline-calendar .react-datepicker__day--keyboard-selected {
+    @apply bg-white/10 text-white !important;
+  }
+
+  .deadline-calendar .react-datepicker__time-container {
+    @apply border-l border-white/10 !important;
+  }
+
+  .deadline-calendar .react-datepicker__time {
+    @apply bg-transparent !important;
+  }
+
+  .deadline-calendar .react-datepicker__time-list-item {
+    @apply text-white/70 hover:bg-white/10 
+    transition-all duration-200 !important;
+  }
+
+  .deadline-calendar .react-datepicker__time-list-item--selected {
+    @apply bg-gradient-to-r from-pink-500 to-purple-500
+    text-white shadow-lg !important;
+  }
+
+  .deadline-calendar .react-datepicker__navigation-icon::before {
+    @apply border-white/60 !important;
+  }
+
+  .deadline-calendar .react-datepicker__day--outside-month {
+    @apply text-white/20 !important;
+  }
+
+  .deadline-calendar .react-datepicker__day:hover {
+    @apply transform scale-110 !important;
+  }
+
+  .deadline-calendar .react-datepicker__triangle {
+    @apply hidden !important;
+  }
+
+  /* Přidáme animaci pro otevření kalendáře */
+  .react-datepicker-popper {
+    animation: calendarFadeIn 0.2s ease-out;
+  }
+
+  @keyframes calendarFadeIn {
+    from {
+      opacity: 0;
+      transform: translateY(-10px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
 }
 
 @keyframes fadeIn {

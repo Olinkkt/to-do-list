@@ -13,7 +13,17 @@ export default function TaskForm({ onAddTask }: TaskFormProps) {
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault()
     if (!title.trim()) return
-    onAddTask({ title, description, priority, completed: false })
+    onAddTask({ 
+      title, 
+      description, 
+      priority, 
+      completed: false,
+      createdAt: Date.now(),
+      tags: [],
+      notes: '',
+      links: [],
+      subTasks: []
+    })
     setTitle('')
     setDescription('')
     setPriority('Střední')

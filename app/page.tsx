@@ -1,10 +1,13 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useMemo } from 'react'
 import { DragDropContext, Droppable, DropResult } from 'react-beautiful-dnd'
 import TaskForm from '../components/TaskForm'
 import TaskList from '../components/TaskList'
-import { Task } from '../components/types'
+import { Task, Priority, SortType } from '../components/types'
+import TaskFilter from '../components/TaskFilter'
+import BulkActions from '../components/BulkActions'
+import SearchBar from '../components/SearchBar'
 
 // Klíč pro localStorage
 const STORAGE_KEY = 'todo-tasks'
@@ -24,6 +27,9 @@ const isLocalStorageAvailable = () => {
 export default function Home() {
   const [tasks, setTasks] = useState<Task[]>([])
   const [isStorageAvailable, setIsStorageAvailable] = useState(false)
+  const [sortBy, setSortBy] = useState<SortType>('createdAt')
+  const [searchQuery, setSearchQuery] = useState('')
+  const [customOrder, setCustomOrder] = useState<number[]>([])
 
   // Kontrola dostupnosti localStorage
   useEffect(() => {
@@ -59,6 +65,13 @@ export default function Home() {
     }
   }, [tasks, isStorageAvailable])
 
+  // Při načtení úkolů nastavíme výchozí vlastní pořadí
+  useEffect(() => {
+    if (tasks.length > 0) {
+      setCustomOrder(tasks.map(task => task.id!))
+    }
+  }, [tasks.length])
+
   const addTask = (task: Task) => {
     setTasks(prevTasks => [...prevTasks, { ...task, id: Date.now() }])
   }
@@ -75,10 +88,131 @@ export default function Home() {
 
   const onDragEnd = (result: DropResult) => {
     if (!result.destination) return
-    const items = Array.from(tasks)
-    const [reorderedItem] = items.splice(result.source.index, 1)
-    items.splice(result.destination.index, 0, reorderedItem)
-    setTasks(items)
+
+    if (sortBy === 'custom') {
+      // Aktualizujeme vlastní pořadí
+      const items = Array.from(customOrder)
+      const [reorderedItem] = items.splice(result.source.index, 1)
+      items.splice(result.destination.index, 0, reorderedItem)
+      setCustomOrder(items)
+
+      // Aktualizujeme také pole úkolů, aby se zachovalo vizuální pořadí
+      const taskItems = Array.from(tasks)
+      const [reorderedTask] = taskItems.splice(result.source.index, 1)
+      taskItems.splice(result.destination.index, 0, reorderedTask)
+      setTasks(taskItems)
+    }
+  }
+
+  // Pomocná funkce pro určení váhy priority
+  const getPriorityWeight = (priority: Priority): number => {
+    switch (priority) {
+      case 'Vysoká': return 3
+      case 'Střední': return 2
+      case 'Nízká': return 1
+    }
+  }
+
+  // Pomocné výpočty pro bulk actions
+  const hasCompletedTasks = useMemo(() => 
+    tasks.some(task => task.completed), [tasks]
+  )
+  
+  const allTasksCompleted = useMemo(() => 
+    tasks.length > 0 && tasks.every(task => task.completed), [tasks]
+  )
+
+  // Hromadné akce
+  const handleDeleteCompleted = () => {
+    setTasks(prevTasks => prevTasks.filter(task => !task.completed))
+  }
+
+  const handleToggleAll = () => {
+    setTasks(prevTasks => prevTasks.map(task => ({
+      ...task,
+      completed: !allTasksCompleted
+    })))
+  }
+
+  // Filtrované a seřazené úkoly
+  const filteredAndSortedTasks = useMemo(() => {
+    // Nejdřív filtrujeme podle vyhledávání
+    let filteredTasks = tasks.filter(task => {
+      const searchLower = searchQuery.toLowerCase()
+      return (
+        task.title.toLowerCase().includes(searchLower) ||
+        task.description.toLowerCase().includes(searchLower)
+      )
+    })
+
+    // Pak seřadíme podle vybraného způsobu
+    if (sortBy === 'priority') {
+      return filteredTasks.sort((a, b) => {
+        const priorityDiff = getPriorityWeight(b.priority) - getPriorityWeight(a.priority)
+        if (priorityDiff === 0) {
+          return b.createdAt - a.createdAt
+        }
+        return priorityDiff
+      })
+    } else if (sortBy === 'createdAt') {
+      return filteredTasks.sort((a, b) => b.createdAt - a.createdAt)
+    } else if (sortBy === 'deadline') {
+      // Úkoly bez deadline řadíme na konec
+      return filteredTasks.sort((a, b) => {
+        if (!a.deadline && !b.deadline) return b.createdAt - a.createdAt
+        if (!a.deadline) return 1
+        if (!b.deadline) return -1
+        return a.deadline - b.deadline
+      })
+    } else {
+      // Pro vlastní řazení použijeme pořadí z customOrder
+      return filteredTasks.sort((a, b) => {
+        const indexA = customOrder.indexOf(a.id!)
+        const indexB = customOrder.indexOf(b.id!)
+        return indexA - indexB
+      })
+    }
+  }, [tasks, sortBy, searchQuery, customOrder])
+
+  // Přidáme ukládání vlastního pořadí do localStorage
+  useEffect(() => {
+    if (!isStorageAvailable) return
+    try {
+      localStorage.setItem('todo-custom-order', JSON.stringify(customOrder))
+    } catch (error) {
+      console.error('Chyba při ukládání vlastního pořadí:', error)
+    }
+  }, [customOrder, isStorageAvailable])
+
+  // Načteme vlastní pořadí při startu
+  useEffect(() => {
+    if (!isStorageAvailable) return
+    try {
+      const savedOrder = localStorage.getItem('todo-custom-order')
+      if (savedOrder) {
+        setCustomOrder(JSON.parse(savedOrder))
+      }
+    } catch (error) {
+      console.error('Chyba při načítání vlastního pořadí:', error)
+    }
+  }, [isStorageAvailable])
+
+  const handleMoveTask = (fromIndex: number, toIndex: number) => {
+    // Aktualizujeme pole úkolů
+    const newTasks = Array.from(tasks)
+    const [movedTask] = newTasks.splice(fromIndex, 1)
+    newTasks.splice(toIndex, 0, movedTask)
+    setTasks(newTasks)
+
+    // Aktualizujeme vlastní pořadí
+    const newOrder = Array.from(customOrder)
+    const [movedId] = newOrder.splice(fromIndex, 1)
+    newOrder.splice(toIndex, 0, movedId)
+    setCustomOrder(newOrder)
+  }
+
+  const handleSortChange = (newSort: SortType) => {
+    setSortBy(newSort)
   }
 
   return (
@@ -90,14 +224,36 @@ export default function Home() {
         
         <TaskForm onAddTask={addTask} />
 
+        <div className="space-y-4">
+          <SearchBar 
+            searchQuery={searchQuery}
+            onSearchChange={setSearchQuery}
+          />
+
+          <div className="flex gap-4 items-stretch">
+            <TaskFilter 
+              sortBy={sortBy} 
+              onSortChange={handleSortChange}
+            />
+            <BulkActions
+              onDeleteCompleted={handleDeleteCompleted}
+              onToggleAll={handleToggleAll}
+              hasCompletedTasks={hasCompletedTasks}
+              allTasksCompleted={allTasksCompleted}
+            />
+          </div>
+        </div>
+
         <DragDropContext onDragEnd={onDragEnd}>
           <Droppable droppableId="tasks">
             {(provided) => (
               <div {...provided.droppableProps} ref={provided.innerRef}>
                 <TaskList 
-                  tasks={tasks} 
+                  tasks={filteredAndSortedTasks}
                   onUpdateTask={updateTask} 
                   onDeleteTask={deleteTask} 
+                  sortBy={sortBy}
+                  onMoveTask={handleMoveTask}
                 />
                 {provided.placeholder}
               </div>
