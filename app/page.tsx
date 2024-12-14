@@ -1,13 +1,63 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { DragDropContext, Droppable, DropResult } from 'react-beautiful-dnd'
 import TaskForm from '../components/TaskForm'
 import TaskList from '../components/TaskList'
 import { Task } from '../components/types'
 
+// Klíč pro localStorage
+const STORAGE_KEY = 'todo-tasks'
+
+// Pomocná funkce pro kontrolu dostupnosti localStorage
+const isLocalStorageAvailable = () => {
+  try {
+    const test = 'test'
+    localStorage.setItem(test, test)
+    localStorage.removeItem(test)
+    return true
+  } catch (e) {
+    return false
+  }
+}
+
 export default function Home() {
   const [tasks, setTasks] = useState<Task[]>([])
+  const [isStorageAvailable, setIsStorageAvailable] = useState(false)
+
+  // Kontrola dostupnosti localStorage
+  useEffect(() => {
+    setIsStorageAvailable(isLocalStorageAvailable())
+  }, [])
+
+  // Načtení úkolů při prvním renderování
+  useEffect(() => {
+    if (!isStorageAvailable) return
+
+    try {
+      const savedTasks = localStorage.getItem(STORAGE_KEY)
+      console.log('Načtené úkoly:', savedTasks)
+      if (savedTasks) {
+        const parsedTasks = JSON.parse(savedTasks)
+        console.log('Parsované úkoly:', parsedTasks)
+        setTasks(parsedTasks)
+      }
+    } catch (error) {
+      console.error('Chyba při načítání úkolů:', error)
+    }
+  }, [isStorageAvailable])
+
+  // Uložení úkolů při každé změně
+  useEffect(() => {
+    if (!isStorageAvailable) return
+
+    try {
+      console.log('Ukládám úkoly:', tasks)
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(tasks))
+    } catch (error) {
+      console.error('Chyba při ukládání úkolů:', error)
+    }
+  }, [tasks, isStorageAvailable])
 
   const addTask = (task: Task) => {
     setTasks(prevTasks => [...prevTasks, { ...task, id: Date.now() }])
