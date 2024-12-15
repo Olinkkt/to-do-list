@@ -7,12 +7,12 @@ interface TaskFilterProps {
 
 export default function TaskFilter({ sortBy, onSortChange }: TaskFilterProps) {
   return (
-    <div className="flex items-center space-x-4 bg-gray-900/50 p-4 rounded-3xl border border-white/10">
-      <span className="text-white/80">Seřadit podle:</span>
+    <div className="flex flex-row items-center gap-4 bg-gray-900/50 p-4 rounded-3xl border border-white/10 h-full">
+      <span className="text-white/80 whitespace-nowrap">Seřadit:</span>
       <select
         value={sortBy}
         onChange={(e) => onSortChange(e.target.value as SortType)}
-        className="modern-select !py-2 rounded-2xl"
+        className="modern-select !py-2 rounded-2xl flex-1 min-w-0"
       >
         <option value="createdAt">📅 Data vytvoření</option>
         <option value="priority">🎯 Priority</option>
