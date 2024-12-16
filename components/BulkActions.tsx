@@ -30,7 +30,7 @@ export default function BulkActions({
       <div className="flex flex-row gap-4 bg-gray-900/50 p-4 rounded-3xl border border-white/10 h-full">
         <button
           onClick={onToggleAll}
-          className="flex-1 px-4 py-2 rounded-2xl bg-blue-500/20 text-blue-300 
+          className="w-1/2 px-4 py-2 rounded-2xl bg-blue-500/20 text-blue-300 
           hover:bg-blue-500/30 text-sm font-medium transition-all duration-200
           flex items-center justify-center gap-2 whitespace-nowrap"
         >
@@ -44,7 +44,7 @@ export default function BulkActions({
         <button
           onClick={handleDeleteClick}
           disabled={!hasCompletedTasks}
-          className="flex-1 px-4 py-2 rounded-2xl bg-red-500/20 text-red-300 
+          className="w-1/2 px-4 py-2 rounded-2xl bg-red-500/20 text-red-300 
           hover:bg-red-500/30 text-sm font-medium transition-all duration-200
           flex items-center justify-center gap-2 whitespace-nowrap
           disabled:opacity-50 disabled:cursor-not-allowed"

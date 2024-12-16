@@ -34,9 +34,12 @@ export default function TaskDetailModal({ task, isOpen, onClose, onUpdate }: Tas
 
   // Výpočet procenta dokončení
   const completionPercentage = useMemo(() => {
-    if (editedTask.subTasks.length === 0) return task.completed ? 100 : 0
-    const completed = editedTask.subTasks.filter(st => st.completed).length
-    return Math.round((completed / editedTask.subTasks.length) * 100)
+    if (!editedTask?.subTasks) return task.completed ? 100 : 0;
+    
+    if (editedTask.subTasks.length === 0) return task.completed ? 100 : 0;
+    
+    const completed = editedTask.subTasks.filter(st => st.completed).length;
+    return Math.round((completed / editedTask.subTasks.length) * 100);
   }, [editedTask.subTasks, task.completed])
 
   const handleAddSubTask = () => {
@@ -131,7 +134,7 @@ export default function TaskDetailModal({ task, isOpen, onClose, onUpdate }: Tas
           </div>
         </div>
 
-        {/* Št��tky */}
+        {/* Štítky */}
         <div className="space-y-2">
           <label className="text-white/80 text-sm font-medium">Štítky</label>
           <div className="flex flex-wrap gap-2">
