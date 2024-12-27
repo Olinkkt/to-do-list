@@ -6,7 +6,8 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "next lint"
+    "lint": "next lint",
+    "generate-icons": "ts-node scripts/generate-icons.ts"
   },
   "dependencies": {
     "@types/react-datepicker": "^6.2.0",
@@ -15,10 +16,12 @@
     "date-fns": "^4.1.0",
     "lucide-react": "^0.468.0",
     "next": "14.2.16",
+    "next-pwa": "^5.6.0",
     "react": "^18",
     "react-beautiful-dnd": "^13.1.1",
     "react-datepicker": "^7.5.0",
     "react-dom": "^18",
+    "sharp": "^0.33.5",
     "tailwind-merge": "^2.5.5",
     "tailwindcss-animate": "^1.0.7"
   },
@@ -31,6 +34,7 @@
     "eslint-config-next": "14.2.16",
     "postcss": "^8",
     "tailwindcss": "^3.4.1",
-    "typescript": "^5"
+    "ts-node": "^10.9.2",
+    "typescript": "^5.7.2"
   }
 }
