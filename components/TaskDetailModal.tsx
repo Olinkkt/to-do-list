@@ -5,7 +5,7 @@ import 'react-datepicker/dist/react-datepicker.css'
 import { cs } from 'date-fns/locale'
 
 // Registrujeme českou lokalizaci
-registerLocale('cs', cs)
+registerLocale('cs', { ...cs, options: cs.options || {} })
 
 interface TaskDetailModalProps {
   task: Task
@@ -113,6 +113,30 @@ export default function TaskDetailModal({ task, isOpen, onClose, onUpdate }: Tas
     onUpdate(editedTask)
     onClose()
   }
+
+  // Přidáme pomocné funkce pro práci s časem
+  const getHours = (date: Date | null) => {
+    return date ? date.getHours() : 0
+  }
+
+  const getMinutes = (date: Date | null) => {
+    return date ? date.getMinutes() : 0
+  }
+
+  const updateDateTime = (date: Date | null, hours: number, minutes: number) => {
+    if (!date) return null
+    const newDate = new Date(date)
+    newDate.setHours(hours, minutes)
+    return newDate
+  }
+
+  // Přidáme stav pro hodiny a minuty
+  const [selectedHours, setSelectedHours] = useState(
+    getHours(editedTask.deadline ? new Date(editedTask.deadline) : null)
+  )
+  const [selectedMinutes, setSelectedMinutes] = useState(
+    getMinutes(editedTask.deadline ? new Date(editedTask.deadline) : null)
+  )
 
   if (!isOpen) return null
 
@@ -334,9 +358,8 @@ export default function TaskDetailModal({ task, isOpen, onClose, onUpdate }: Tas
                 selected={editedTask.deadline ? new Date(editedTask.deadline) : null}
                 onChange={(date: Date | null) => {
                   if (date) {
-                    const currentDeadline = editedTask.deadline ? new Date(editedTask.deadline) : new Date()
-                    date.setHours(currentDeadline.getHours(), currentDeadline.getMinutes())
-                    setEditedTask(prev => ({ ...prev, deadline: date.getTime() }))
+                    const updatedDate = updateDateTime(date, selectedHours, selectedMinutes)
+                    setEditedTask(prev => ({ ...prev, deadline: updatedDate?.getTime() }))
                   } else {
                     setEditedTask(prev => ({ ...prev, deadline: undefined }))
                   }
@@ -349,13 +372,57 @@ export default function TaskDetailModal({ task, isOpen, onClose, onUpdate }: Tas
                 border-none focus:ring-0 cursor-pointer hover:bg-black/30 transition-all"
                 calendarClassName="deadline-calendar"
                 wrapperClassName="w-full"
-                showTimeSelect
-                timeFormat="HH:mm"
-                timeIntervals={15}
-                timeCaption="Čas"
                 isClearable
               />
             </div>
+            {editedTask.deadline && (
+              <div className="flex gap-2">
+                <select
+                  value={selectedHours}
+                  onChange={(e) => {
+                    const hours = parseInt(e.target.value)
+                    setSelectedHours(hours)
+                    const updatedDate = updateDateTime(
+                      new Date(editedTask.deadline!),
+                      hours,
+                      selectedMinutes
+                    )
+                    setEditedTask(prev => ({ ...prev, deadline: updatedDate?.getTime() }))
+                  }}
+                  className="w-24 !py-3 rounded-xl bg-black/20 text-white/80 
+                  border-none focus:ring-0 cursor-pointer hover:bg-black/30 transition-all
+                  text-center"
+                >
+                  {Array.from({ length: 24 }, (_, i) => (
+                    <option key={i} value={i}>
+                      {i.toString().padStart(2, '0')}:00
+                    </option>
+                  ))}
+                </select>
+                <select
+                  value={selectedMinutes}
+                  onChange={(e) => {
+                    const minutes = parseInt(e.target.value)
+                    setSelectedMinutes(minutes)
+                    const updatedDate = updateDateTime(
+                      new Date(editedTask.deadline!),
+                      selectedHours,
+                      minutes
+                    )
+                    setEditedTask(prev => ({ ...prev, deadline: updatedDate?.getTime() }))
+                  }}
+                  className="w-24 !py-3 rounded-xl bg-black/20 text-white/80 
+                  border-none focus:ring-0 cursor-pointer hover:bg-black/30 transition-all
+                  text-center"
+                >
+                  {Array.from({ length: 60 }, (_, i) => (
+                    <option key={i} value={i}>
+                      :{i.toString().padStart(2, '0')}
+                    </option>
+                  ))}
+                </select>
+              </div>
+            )}
           </div>
           {editedTask.deadline && (
             <p className="text-sm text-white/60 pl-1">

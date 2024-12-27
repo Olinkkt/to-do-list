@@ -59,9 +59,20 @@ export default function TaskCard({
     
     const days = Math.floor(remaining / (1000 * 60 * 60 * 24))
     const hours = Math.floor((remaining % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60))
+    const minutes = Math.floor((remaining % (1000 * 60 * 60)) / (1000 * 60))
     
-    if (days > 0) return { text: `${days} ${days === 1 ? 'den' : days < 5 ? 'dny' : 'dní'}`, isOverdue: false }
-    return { text: `${hours} ${hours === 1 ? 'hodina' : hours < 5 ? 'hodiny' : 'hodin'}`, isOverdue: false }
+    if (days > 0) return { 
+      text: `${days} ${days === 1 ? 'den' : days < 5 ? 'dny' : 'dní'}`, 
+      isOverdue: false 
+    }
+    if (hours > 0) return { 
+      text: `${hours} ${hours === 1 ? 'hodina' : hours < 5 ? 'hodiny' : 'hodin'}`, 
+      isOverdue: false 
+    }
+    return { 
+      text: `${minutes} ${minutes === 1 ? 'minuta' : minutes < 5 ? 'minuty' : 'minut'}`, 
+      isOverdue: false 
+    }
   }
 
   return (
