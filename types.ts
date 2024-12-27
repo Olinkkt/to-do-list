@@ -7,3 +7,13 @@ export interface Task {
   priority: Priority
   completed: boolean
 } 
+
+declare global {
+  interface NotificationOptions {
+    body?: string
+    icon?: string
+    tag?: string
+    requireInteraction?: boolean
+    vibrate?: number[]
+  }
+} 

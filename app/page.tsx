@@ -24,12 +24,16 @@ const isLocalStorageAvailable = () => {
   }
 }
 
+// Přidáme ID vývojáře pro testovací tlačítka
+const DEVELOPER_ID = 'oliver'  // můžete změnit na své ID
+
 export default function Home() {
   const [tasks, setTasks] = useState<Task[]>([])
   const [isStorageAvailable, setIsStorageAvailable] = useState(false)
   const [sortBy, setSortBy] = useState<SortType>('createdAt')
   const [searchQuery, setSearchQuery] = useState('')
   const [customOrder, setCustomOrder] = useState<number[]>([])
+  const [notificationsEnabled, setNotificationsEnabled] = useState(false)
 
   // Kontrola dostupnosti localStorage
   useEffect(() => {
@@ -215,12 +219,200 @@ export default function Home() {
     setSortBy(newSort)
   }
 
+  // Požádáme o povolení notifikací při prvním načtení
+  useEffect(() => {
+    if ('Notification' in window) {
+      Notification.requestPermission().then(permission => {
+        setNotificationsEnabled(permission === 'granted')
+      })
+    }
+  }, [])
+
+  // Kontrola deadlinů a odesílání notifikací
+  useEffect(() => {
+    if (!notificationsEnabled) return
+
+    const checkDeadlines = () => {
+      const now = Date.now()
+      tasks.forEach(task => {
+        if (task.deadline && !task.completed) {
+          const timeToDeadline = task.deadline - now
+          const oneHour = 60 * 60 * 1000
+          const oneDay = 24 * oneHour
+          const oneWeek = 7 * oneDay
+
+          // Různé typy notifikací podle zbývajícího času
+          if (timeToDeadline <= 0 && timeToDeadline > -oneHour) {
+            // Právě teď - deadline
+            new Notification('⚠️ DEADLINE PRÁVĚ TEĎ!', {
+              body: `"${task.title}" - Termín vypršel! Dokončete úkol co nejdříve!`,
+              icon: '/icon-192x192.png',
+              tag: `deadline-now-${task.id}`,
+              requireInteraction: true,
+              vibrate: [200, 100, 200] // Výraznější vibrace
+            })
+          } else if (timeToDeadline > 0 && timeToDeadline <= oneHour) {
+            // 1 hodina do deadlinu
+            new Notification('🚨 Poslední hodina!', {
+              body: `"${task.title}" - Méně než hodina do deadlinu! Rychle to dokončete!`,
+              icon: '/icon-192x192.png',
+              tag: `deadline-hour-${task.id}`,
+              requireInteraction: true,
+              vibrate: [100, 50, 100]
+            })
+          } else if (timeToDeadline > oneHour && timeToDeadline <= oneDay) {
+            // 1 den do deadlinu
+            new Notification('⏰ Zítra deadline!', {
+              body: `"${task.title}" - Deadline je zítra! Nezapomeňte úkol dokončit.`,
+              icon: '/icon-192x192.png',
+              tag: `deadline-day-${task.id}`,
+              requireInteraction: true
+            })
+          } else if (timeToDeadline > oneDay && timeToDeadline <= oneWeek) {
+            // 1 týden do deadlinu
+            new Notification('📅 Blíží se deadline', {
+              body: `"${task.title}" - Deadline je za týden. Máte ještě čas, ale nezapomeňte na to!`,
+              icon: '/icon-192x192.png',
+              tag: `deadline-week-${task.id}`
+            })
+          }
+        }
+      })
+    }
+
+    // Kontrolujeme každou minutu
+    const interval = setInterval(checkDeadlines, 60 * 1000)
+    
+    // Spustíme kontrolu ihned po načtení
+    checkDeadlines()
+
+    return () => clearInterval(interval)
+  }, [tasks, notificationsEnabled])
+
+  // Funkce pro testování notifikací
+  const testNotification = (type: 'week' | 'day' | 'hour' | 'now') => {
+    if (!notificationsEnabled) {
+      alert('Nejdřív povolte notifikace!')
+      return
+    }
+
+    const testTask = {
+      id: Date.now(),
+      title: "Testovací úkol",
+      description: "Test notifikace",
+      priority: "Střední" as Priority,
+      completed: false,
+      deadline: Date.now(),
+      createdAt: Date.now(),
+      tags: [],
+      notes: "",
+      links: [],
+      subTasks: []
+    }
+
+    switch(type) {
+      case 'week':
+        new Notification('📅 Blíží se deadline', {
+          body: `"${testTask.title}" - Deadline je za týden. Máte ještě čas, ale nezapomeňte na to!`,
+          icon: '/icon-192x192.png',
+          tag: `test-week-${testTask.id}`
+        })
+        break
+      case 'day':
+        new Notification('⏰ Zítra deadline!', {
+          body: `"${testTask.title}" - Deadline je zítra! Nezapomeňte úkol dokončit.`,
+          icon: '/icon-192x192.png',
+          tag: `test-day-${testTask.id}`,
+          requireInteraction: true
+        })
+        break
+      case 'hour':
+        new Notification('🚨 Poslední hodina!', {
+          body: `"${testTask.title}" - Méně než hodina do deadlinu! Rychle to dokončete!`,
+          icon: '/icon-192x192.png',
+          tag: `test-hour-${testTask.id}`,
+          requireInteraction: true,
+          vibrate: [100, 50, 100]
+        })
+        break
+      case 'now':
+        new Notification('⚠️ DEADLINE PRÁVĚ TEĎ!', {
+          body: `"${testTask.title}" - Termín vypršel! Dokončete úkol co nejdříve!`,
+          icon: '/icon-192x192.png',
+          tag: `test-now-${testTask.id}`,
+          requireInteraction: true,
+          vibrate: [200, 100, 200]
+        })
+        break
+    }
+  }
+
+  // Zjistíme, jestli je přihlášený vývojář
+  const isDeveloper = typeof window !== 'undefined' && localStorage.getItem('userId') === DEVELOPER_ID
+
   return (
     <div className="min-h-screen py-4 sm:py-8 px-3 sm:px-6 lg:px-8">
       <div className="max-w-4xl mx-auto space-y-6 sm:space-y-8">
-        <h1 className="text-3xl sm:text-4xl font-bold text-center text-transparent bg-clip-text bg-gradient-to-r from-pink-500 to-purple-500">
+        {/* Přidáme tajné přihlášení pro vývojáře - dvojklik na nadpis */}
+        <h1 
+          className="text-3xl sm:text-4xl font-bold text-center text-transparent bg-clip-text bg-gradient-to-r from-pink-500 to-purple-500"
+          onDoubleClick={() => {
+            const id = prompt('Zadejte vývojářské ID:')
+            if (id) localStorage.setItem('userId', id)
+          }}
+        >
           To-Do List
         </h1>
+
+        {/* Vývojářská sekce */}
+        {isDeveloper && (
+          <div className="bg-gray-800/50 p-4 rounded-xl space-y-2">
+            <div className="flex justify-between items-center">
+              <p className="text-white/60 text-sm">Vývojářské nástroje</p>
+              <button
+                onClick={() => {
+                  localStorage.removeItem('userId')
+                  window.location.reload() // Obnovíme stránku pro aktualizaci UI
+                }}
+                className="px-2 py-1 text-xs bg-red-500/20 text-red-300 rounded-lg 
+                hover:bg-red-500/30 flex items-center gap-1"
+              >
+                <span>Odhlásit</span>
+                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" 
+                  strokeWidth={1.5} stroke="currentColor" className="w-3 h-3">
+                  <path strokeLinecap="round" strokeLinejoin="round" 
+                    d="M8.25 9V5.25A2.25 2.25 0 0 1 10.5 3h6A2.25 2.25 0 0 1 18.75 5.25v13.5A2.25 2.25 0 0 1 16.5 21h-6a2.25 2.25 0 0 1-2.25-2.25V15m-3 0-3-3m0 0 3-3m-3 3H15" />
+                </svg>
+              </button>
+            </div>
+            <div className="flex flex-wrap gap-2">
+              <button
+                onClick={() => testNotification('week')}
+                className="px-3 py-1 text-sm bg-blue-500/20 text-blue-300 rounded-lg hover:bg-blue-500/30"
+              >
+                Test notifikace (týden)
+              </button>
+              <button
+                onClick={() => testNotification('day')}
+                className="px-3 py-1 text-sm bg-yellow-500/20 text-yellow-300 rounded-lg hover:bg-yellow-500/30"
+              >
+                Test notifikace (den)
+              </button>
+              <button
+                onClick={() => testNotification('hour')}
+                className="px-3 py-1 text-sm bg-orange-500/20 text-orange-300 rounded-lg hover:bg-orange-500/30"
+              >
+                Test notifikace (hodina)
+              </button>
+              <button
+                onClick={() => testNotification('now')}
+                className="px-3 py-1 text-sm bg-red-500/20 text-red-300 rounded-lg hover:bg-red-500/30"
+              >
+                Test notifikace (teď)
+              </button>
+            </div>
+          </div>
+        )}
         
         <TaskForm onAddTask={addTask} />
 
