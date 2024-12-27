@@ -1,5 +1,5 @@
 import { useState, useMemo, useRef } from 'react'
-import { Task, SubTask, Tag } from './types'
+import { Task, Tag } from './types'
 import DatePicker, { registerLocale } from 'react-datepicker'
 import 'react-datepicker/dist/react-datepicker.css'
 import { cs } from 'date-fns/locale'

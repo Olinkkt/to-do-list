@@ -19,7 +19,7 @@ const isLocalStorageAvailable = () => {
     localStorage.setItem(test, test)
     localStorage.removeItem(test)
     return true
-  } catch (e) {
+  } catch (_) {
     return false
   }
 }
@@ -70,7 +70,7 @@ export default function Home() {
     if (tasks.length > 0) {
       setCustomOrder(tasks.map(task => task.id!))
     }
-  }, [tasks.length])
+  }, [tasks])
 
   const addTask = (task: Task) => {
     setTasks(prevTasks => [...prevTasks, { ...task, id: Date.now() }])
@@ -137,7 +137,7 @@ export default function Home() {
   // Filtrované a seřazené úkoly
   const filteredAndSortedTasks = useMemo(() => {
     // Nejdřív filtrujeme podle vyhledávání
-    let filteredTasks = tasks.filter(task => {
+    const filteredTasks = tasks.filter(task => {
       const searchLower = searchQuery.toLowerCase()
       return (
         task.title.toLowerCase().includes(searchLower) ||
