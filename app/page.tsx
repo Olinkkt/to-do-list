@@ -35,7 +35,7 @@ const hashString = (str: string) => {
   return hash.toString()
 }
 
-// Použijeme env proměnnou místo hardcoded ID
+// Odstraníme starý DEVELOPER_ID a necháme jen hash
 const DEVELOPER_HASH = process.env.NEXT_PUBLIC_DEVELOPER_HASH
 
 export default function Home() {
@@ -379,7 +379,7 @@ export default function Home() {
             if (id) {
               localStorage.setItem('userId', id)
               window.location.reload()
-              if (id === DEVELOPER_ID) {
+              if (hashString(id) === DEVELOPER_HASH) {
                 alert('Vývojářský mód aktivován! Stránka se obnoví.')
               } else {
                 alert('Nesprávné ID')
