@@ -316,6 +316,73 @@ export default function Home() {
     setNotificationsEnabled(permission === 'granted')
   }
 
+  // Kontrola deadlinů a odesílání notifikací
+  useEffect(() => {
+    if (!('Notification' in window)) return
+    
+    const checkDeadlines = () => {
+      const now = Date.now()
+      tasks.forEach(task => {
+        if (task.deadline && !task.completed) {
+          const timeToDeadline = task.deadline - now
+          const oneHour = 60 * 60 * 1000
+          const oneDay = 24 * oneHour
+          const oneWeek = 7 * oneDay
+
+          // Pokud nemáme povolení k notifikacím, požádáme o něj
+          if (Notification.permission === 'default') {
+            Notification.requestPermission().then(permission => {
+              setNotificationsEnabled(permission === 'granted')
+            })
+            return
+          }
+
+          if (Notification.permission !== 'granted') return
+
+          // Různé typy notifikací podle zbývajícího času
+          if (timeToDeadline <= 0 && timeToDeadline > -oneHour) {
+            new Notification('⚠️ DEADLINE PRÁVĚ TEĎ!', {
+              body: `"${task.title}" - Termín vypršel! Dokončete úkol co nejdříve!`,
+              icon: '/icon-192x192.png',
+              tag: `deadline-now-${task.id}`,
+              requireInteraction: true,
+              vibrate: [200, 100, 200]
+            })
+          } else if (timeToDeadline > 0 && timeToDeadline <= oneHour) {
+            new Notification('🚨 Poslední hodina!', {
+              body: `"${task.title}" - Méně než hodina do deadlinu! Rychle to dokončete!`,
+              icon: '/icon-192x192.png',
+              tag: `deadline-hour-${task.id}`,
+              requireInteraction: true,
+              vibrate: [100, 50, 100]
+            })
+          } else if (timeToDeadline > oneHour && timeToDeadline <= oneDay) {
+            new Notification('⏰ Zítra deadline!', {
+              body: `"${task.title}" - Deadline je zítra! Nezapomeňte úkol dokončit.`,
+              icon: '/icon-192x192.png',
+              tag: `deadline-day-${task.id}`,
+              requireInteraction: true
+            })
+          } else if (timeToDeadline > oneDay && timeToDeadline <= oneWeek) {
+            new Notification('📅 Blíží se deadline', {
+              body: `"${task.title}" - Deadline je za týden. Máte ještě čas, ale nezapomeňte na to!`,
+              icon: '/icon-192x192.png',
+              tag: `deadline-week-${task.id}`
+            })
+          }
+        }
+      })
+    }
+
+    // Kontrolujeme každou minutu
+    const interval = setInterval(checkDeadlines, 60 * 1000)
+    
+    // Spustíme kontrolu ihned po načtení
+    checkDeadlines()
+
+    return () => clearInterval(interval)
+  }, [tasks])
+
   return (
     <div className="min-h-screen py-4 sm:py-8 px-3 sm:px-6 lg:px-8">
       <div className="max-w-4xl mx-auto space-y-6 sm:space-y-8">
