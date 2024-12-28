@@ -24,8 +24,19 @@ const isLocalStorageAvailable = () => {
   }
 }
 
-// Přidáme ID vývojáře pro testovací tlačítka
-const DEVELOPER_ID = 'oliver'  // můžete změnit na své ID
+// Přidáme hash funkci
+const hashString = (str: string) => {
+  let hash = 0
+  for (let i = 0; i < str.length; i++) {
+    const char = str.charCodeAt(i)
+    hash = ((hash << 5) - hash) + char
+    hash = hash & hash
+  }
+  return hash.toString()
+}
+
+// Použijeme env proměnnou místo hardcoded ID
+const DEVELOPER_HASH = process.env.NEXT_PUBLIC_DEVELOPER_HASH
 
 export default function Home() {
   const [tasks, setTasks] = useState<Task[]>([])
@@ -34,6 +45,12 @@ export default function Home() {
   const [searchQuery, setSearchQuery] = useState('')
   const [customOrder, setCustomOrder] = useState<number[]>([])
   const [notificationsEnabled, setNotificationsEnabled] = useState(false)
+  const [isClient, setIsClient] = useState(false)
+
+  // Nastavíme isClient na true po prvním renderu
+  useEffect(() => {
+    setIsClient(true)
+  }, [])
 
   // Kontrola dostupnosti localStorage
   useEffect(() => {
@@ -347,25 +364,34 @@ export default function Home() {
     }
   }
 
-  // Zjistíme, jestli je přihlášený vývojář
-  const isDeveloper = typeof window !== 'undefined' && localStorage.getItem('userId') === DEVELOPER_ID
+  // Zjistíme, jestli je přihlášený vývojář (pouze na klientovi)
+  const isDeveloper = isClient && 
+    hashString(localStorage.getItem('userId') || '') === DEVELOPER_HASH
 
   return (
     <div className="min-h-screen py-4 sm:py-8 px-3 sm:px-6 lg:px-8">
       <div className="max-w-4xl mx-auto space-y-6 sm:space-y-8">
-        {/* Přidáme tajné přihlášení pro vývojáře - dvojklik na nadpis */}
         <h1 
           className="text-3xl sm:text-4xl font-bold text-center text-transparent bg-clip-text bg-gradient-to-r from-pink-500 to-purple-500"
           onDoubleClick={() => {
-            const id = prompt('Zadejte vývojářské ID:')
-            if (id) localStorage.setItem('userId', id)
+            if (!isClient) return
+            const id = prompt('ID:')
+            if (id) {
+              localStorage.setItem('userId', id)
+              window.location.reload()
+              if (id === DEVELOPER_ID) {
+                alert('Vývojářský mód aktivován! Stránka se obnoví.')
+              } else {
+                alert('Nesprávné ID')
+              }
+            }
           }}
         >
           To-Do List
         </h1>
 
-        {/* Vývojářská sekce */}
-        {isDeveloper && (
+        {/* Vývojářská sekce - renderujeme pouze na klientovi */}
+        {isClient && isDeveloper && (
           <div className="bg-gray-800/50 p-4 rounded-xl space-y-2">
             <div className="flex justify-between items-center">
               <p className="text-white/60 text-sm">Vývojářské nástroje</p>
