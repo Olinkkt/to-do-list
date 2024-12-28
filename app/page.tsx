@@ -8,6 +8,7 @@ import { Task, Priority, SortType } from '../components/types'
 import TaskFilter from '../components/TaskFilter'
 import BulkActions from '../components/BulkActions'
 import SearchBar from '../components/SearchBar'
+import NotificationPrompt from '../components/NotificationPrompt'
 
 // Klíč pro localStorage
 const STORAGE_KEY = 'todo-tasks'
@@ -368,6 +369,10 @@ export default function Home() {
   const isDeveloper = isClient && 
     hashString(localStorage.getItem('userId') || '') === DEVELOPER_HASH
 
+  const handlePermissionChange = (permission: NotificationPermission) => {
+    setNotificationsEnabled(permission === 'granted')
+  }
+
   return (
     <div className="min-h-screen py-4 sm:py-8 px-3 sm:px-6 lg:px-8">
       <div className="max-w-4xl mx-auto space-y-6 sm:space-y-8">
@@ -437,6 +442,15 @@ export default function Home() {
                 Test notifikace (teď)
               </button>
             </div>
+            <button
+              onClick={() => {
+                localStorage.removeItem('notification-permission')
+                window.location.reload()
+              }}
+              className="px-3 py-1 text-sm bg-purple-500/20 text-purple-300 rounded-lg hover:bg-purple-500/30"
+            >
+              Reset notifikací
+            </button>
           </div>
         )}
         
@@ -479,6 +493,8 @@ export default function Home() {
           </Droppable>
         </DragDropContext>
       </div>
+
+      <NotificationPrompt onPermissionChange={handlePermissionChange} />
     </div>
   )
 }

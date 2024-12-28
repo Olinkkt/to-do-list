@@ -1,5 +1,6 @@
 import './globals.css'
 import { Poppins } from 'next/font/google'
+import { Viewport } from 'next'
 
 const poppins = Poppins({
   subsets: ['latin'],
@@ -7,10 +8,16 @@ const poppins = Poppins({
   variable: '--font-poppins',
 })
 
+export const viewport: Viewport = {
+  themeColor: '#000000',
+  width: 'device-width',
+  initialScale: 1,
+  minimumScale: 1,
+  viewportFit: 'cover',
+}
+
 export const metadata = {
   manifest: '/manifest.json',
-  themeColor: '#000000',
-  viewport: 'minimum-scale=1, initial-scale=1, width=device-width, shrink-to-fit=no, viewport-fit=cover',
 }
 
 export default function RootLayout({
@@ -27,7 +34,6 @@ export default function RootLayout({
         <meta name="apple-mobile-web-app-status-bar-style" content="default" />
         <meta name="apple-mobile-web-app-title" content="ToDo" />
         <meta name="mobile-web-app-capable" content="yes" />
-        <meta name="theme-color" content="#000000" />
       </head>
       <body className={`${poppins.variable} font-sans bg-gradient-to-br from-gray-900 to-black`}>
         {children}
