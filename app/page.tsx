@@ -236,25 +236,105 @@ export default function Home() {
     setSortBy(newSort)
   }
 
-  // Zjednodušíme logiku notifikací
+  // Požádáme o povolení notifikací při prvním načtení
   useEffect(() => {
-    if ('Notification' in window) {
-      Notification.requestPermission().then(permission => {
+    const requestNotifications = async () => {
+      if (!('Notification' in window)) return
+      
+      try {
+        // Kontrolujeme aktuální stav
+        if (Notification.permission === 'granted') {
+          setNotificationsEnabled(true)
+          return
+        }
+        
+        // Pokud není granted, zkontrolujeme jestli jsme se už ptali
+        const notificationState = localStorage.getItem('notification-state')
+        if (notificationState === 'asked') return
+
+        // Požádáme o povolení
+        const permission = await Notification.requestPermission()
         setNotificationsEnabled(permission === 'granted')
+        
+        // Zaznamenáme že jsme se ptali
+        localStorage.setItem('notification-state', 'asked')
+      } catch (error) {
+        console.error('Chyba při žádosti o notifikace:', error)
+      }
+    }
+
+    // Spustíme request po 2 sekundách od načtení stránky
+    const timer = setTimeout(requestNotifications, 2000)
+    return () => clearTimeout(timer)
+  }, [])
+
+  // Kontrola deadlinů a odesílání notifikací
+  useEffect(() => {
+    if (!notificationsEnabled) return
+
+    const checkDeadlines = () => {
+      const now = Date.now()
+      tasks.forEach(task => {
+        if (task.deadline && !task.completed) {
+          const timeToDeadline = task.deadline - now
+          const oneHour = 60 * 60 * 1000
+          const oneDay = 24 * oneHour
+          const oneWeek = 7 * oneDay
+
+          // Různé typy notifikací podle zbývajícího času
+          if (timeToDeadline <= 0 && timeToDeadline > -oneHour) {
+            // Právě teď - deadline
+            new Notification('⚠️ DEADLINE PRÁVĚ TEĎ!', {
+              body: `"${task.title}" - Termín vypršel! Dokončete úkol co nejdříve!`,
+              icon: '/icon-192x192.png',
+              tag: `deadline-now-${task.id}`,
+              requireInteraction: true,
+              vibrate: [200, 100, 200] // Výraznější vibrace
+            })
+          } else if (timeToDeadline > 0 && timeToDeadline <= oneHour) {
+            // 1 hodina do deadlinu
+            new Notification('🚨 Poslední hodina!', {
+              body: `"${task.title}" - Méně než hodina do deadlinu! Rychle to dokončete!`,
+              icon: '/icon-192x192.png',
+              tag: `deadline-hour-${task.id}`,
+              requireInteraction: true,
+              vibrate: [100, 50, 100]
+            })
+          } else if (timeToDeadline > oneHour && timeToDeadline <= oneDay) {
+            // 1 den do deadlinu
+            new Notification('⏰ Zítra deadline!', {
+              body: `"${task.title}" - Deadline je zítra! Nezapomeňte úkol dokončit.`,
+              icon: '/icon-192x192.png',
+              tag: `deadline-day-${task.id}`,
+              requireInteraction: true
+            })
+          } else if (timeToDeadline > oneDay && timeToDeadline <= oneWeek) {
+            // 1 týden do deadlinu
+            new Notification('📅 Blíží se deadline', {
+              body: `"${task.title}" - Deadline je za týden. Máte ještě čas, ale nezapomeňte na to!`,
+              icon: '/icon-192x192.png',
+              tag: `deadline-week-${task.id}`
+            })
+          }
+        }
       })
     }
-  }, []) // Spustí se pouze jednou při načtení
 
-  // Upravíme testovací funkci
-  const testNotification = async (type: 'week' | 'day' | 'hour' | 'now') => {
-    // Pokud nemáme povolení, požádáme o něj
+    // Kontrolujeme každou minutu
+    const interval = setInterval(checkDeadlines, 60 * 1000)
+    
+    // Spustíme kontrolu ihned po načtení
+    checkDeadlines()
+
+    return () => clearInterval(interval)
+  }, [tasks, notificationsEnabled])
+
+  // Funkce pro testování notifikací
+  const testNotification = (type: 'week' | 'day' | 'hour' | 'now') => {
+    // Nejdřív zkontrolujeme aktuální stav povolení
     if (Notification.permission !== 'granted') {
-      const permission = await Notification.requestPermission()
-      if (permission !== 'granted') {
-        alert('Pro testování notifikací je potřeba je povolit v nastavení prohlížeče')
-        return
-      }
-      setNotificationsEnabled(true)
+      alert('Notifikace nejsou povoleny!')
+      return
     }
 
     const testTask = {
@@ -311,77 +391,6 @@ export default function Home() {
   // Zjistíme, jestli je přihlášený vývojář (pouze na klientovi)
   const isDeveloper = isClient && 
     hashString(localStorage.getItem('userId') || '') === DEVELOPER_HASH
-
-  const handlePermissionChange = (permission: NotificationPermission) => {
-    setNotificationsEnabled(permission === 'granted')
-  }
-
-  // Kontrola deadlinů a odesílání notifikací
-  useEffect(() => {
-    if (!('Notification' in window)) return
-    
-    const checkDeadlines = () => {
-      const now = Date.now()
-      tasks.forEach(task => {
-        if (task.deadline && !task.completed) {
-          const timeToDeadline = task.deadline - now
-          const oneHour = 60 * 60 * 1000
-          const oneDay = 24 * oneHour
-          const oneWeek = 7 * oneDay
-
-          // Pokud nemáme povolení k notifikacím, požádáme o něj
-          if (Notification.permission === 'default') {
-            Notification.requestPermission().then(permission => {
-              setNotificationsEnabled(permission === 'granted')
-            })
-            return
-          }
-
-          if (Notification.permission !== 'granted') return
-
-          // Různé typy notifikací podle zbývajícího času
-          if (timeToDeadline <= 0 && timeToDeadline > -oneHour) {
-            new Notification('⚠️ DEADLINE PRÁVĚ TEĎ!', {
-              body: `"${task.title}" - Termín vypršel! Dokončete úkol co nejdříve!`,
-              icon: '/icon-192x192.png',
-              tag: `deadline-now-${task.id}`,
-              requireInteraction: true,
-              vibrate: [200, 100, 200]
-            })
-          } else if (timeToDeadline > 0 && timeToDeadline <= oneHour) {
-            new Notification('🚨 Poslední hodina!', {
-              body: `"${task.title}" - Méně než hodina do deadlinu! Rychle to dokončete!`,
-              icon: '/icon-192x192.png',
-              tag: `deadline-hour-${task.id}`,
-              requireInteraction: true,
-              vibrate: [100, 50, 100]
-            })
-          } else if (timeToDeadline > oneHour && timeToDeadline <= oneDay) {
-            new Notification('⏰ Zítra deadline!', {
-              body: `"${task.title}" - Deadline je zítra! Nezapomeňte úkol dokončit.`,
-              icon: '/icon-192x192.png',
-              tag: `deadline-day-${task.id}`,
-              requireInteraction: true
-            })
-          } else if (timeToDeadline > oneDay && timeToDeadline <= oneWeek) {
-            new Notification('📅 Blíží se deadline', {
-              body: `"${task.title}" - Deadline je za týden. Máte ještě čas, ale nezapomeňte na to!`,
-              icon: '/icon-192x192.png',
-              tag: `deadline-week-${task.id}`
-            })
-          }
-        }
-      })
-    }
-
-    // Kontrolujeme každou minutu
-    const interval = setInterval(checkDeadlines, 60 * 1000)
-    
-    // Spustíme kontrolu ihned po načtení
-    checkDeadlines()
-
-    return () => clearInterval(interval)
-  }, [tasks])
 
   return (
     <div className="min-h-screen py-4 sm:py-8 px-3 sm:px-6 lg:px-8">
@@ -454,7 +463,7 @@ export default function Home() {
             </div>
             <button
               onClick={() => {
-                localStorage.removeItem('notification-permission')
+                localStorage.removeItem('notification-state')
                 window.location.reload()
               }}
               className="px-3 py-1 text-sm bg-purple-500/20 text-purple-300 rounded-lg hover:bg-purple-500/30"
