@@ -279,6 +279,9 @@ export default function Home() {
   useEffect(() => {
     if (!notificationsEnabled) return
 
+    // Na iOS nebudeme notifikace vůbec používat
+    if (/iPhone|iPad|iPod/.test(navigator.userAgent)) return
+
     const checkDeadlines = () => {
       const now = Date.now()
       tasks.forEach(task => {
@@ -365,22 +368,8 @@ export default function Home() {
       return
     }
 
-    // Pokud jsme na iOS, použijeme alert místo notifikace
+    // Pokud jsme na iOS, nebudeme dělat nic
     if (/iPhone|iPad|iPod/.test(navigator.userAgent)) {
-      switch(type) {
-        case 'week':
-          alert('📅 Blíží se deadline\n\nTestovací úkol - Deadline je za týden')
-          break
-        case 'day':
-          alert('⏰ Zítra deadline!\n\nTestovací úkol - Deadline je zítra!')
-          break
-        case 'hour':
-          alert('🚨 Poslední hodina!\n\nTestovací úkol - Méně než hodina do deadlinu!')
-          break
-        case 'now':
-          alert('⚠️ DEADLINE PRÁVĚ TEĎ!\n\nTestovací úkol - Termín vypršel!')
-          break
-      }
       return
     }
 
