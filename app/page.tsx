@@ -38,6 +38,13 @@ const hashString = (str: string) => {
 // Odstraníme starý DEVELOPER_ID a necháme jen hash
 const DEVELOPER_HASH = process.env.NEXT_PUBLIC_DEVELOPER_HASH
 
+// Přidáme helper funkci pro kontrolu, jestli jsme na mobilním zařízení
+const isMobile = () => {
+  return /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(
+    navigator.userAgent
+  )
+}
+
 export default function Home() {
   const [tasks, setTasks] = useState<Task[]>([])
   const [isStorageAvailable, setIsStorageAvailable] = useState(false)
@@ -242,28 +249,28 @@ export default function Home() {
       if (!('Notification' in window)) return
       
       try {
-        // Kontrolujeme aktuální stav
+        // Na iOS nebudeme automaticky žádat o povolení
+        if (/iPhone|iPad|iPod/.test(navigator.userAgent)) {
+          return
+        }
+
+        // Pro ostatní zařízení původní logika
         if (Notification.permission === 'granted') {
           setNotificationsEnabled(true)
           return
         }
         
-        // Pokud není granted, zkontrolujeme jestli jsme se už ptali
         const notificationState = localStorage.getItem('notification-state')
         if (notificationState === 'asked') return
 
-        // Požádáme o povolení
         const permission = await Notification.requestPermission()
         setNotificationsEnabled(permission === 'granted')
-        
-        // Zaznamenáme že jsme se ptali
         localStorage.setItem('notification-state', 'asked')
       } catch (error) {
         console.error('Chyba při žádosti o notifikace:', error)
       }
     }
 
-    // Spustíme request po 2 sekundách od načtení stránky
     const timer = setTimeout(requestNotifications, 2000)
     return () => clearTimeout(timer)
   }, [])
@@ -330,13 +337,54 @@ export default function Home() {
   }, [tasks, notificationsEnabled])
 
   // Funkce pro testování notifikací
-  const testNotification = (type: 'week' | 'day' | 'hour' | 'now') => {
-    // Nejdřív zkontrolujeme aktuální stav povolení
+  const testNotification = async (type: 'week' | 'day' | 'hour' | 'now') => {
+    // Kontrola podpory notifikací
+    if (!('Notification' in window)) {
+      alert('Váš prohlížeč nepodporuje notifikace')
+      return
+    }
+
+    // Na mobilních zařízeních nejdřív požádáme o povolení
+    if (isMobile() && Notification.permission !== 'granted') {
+      try {
+        const permission = await Notification.requestPermission()
+        if (permission !== 'granted') {
+          alert('Pro testování notifikací je potřeba je povolit')
+          return
+        }
+      } catch (error) {
+        console.error('Chyba při žádosti o povolení:', error)
+        alert('Nepodařilo se získat povolení pro notifikace')
+        return
+      }
+    }
+
+    // Kontrola povolení
     if (Notification.permission !== 'granted') {
       alert('Notifikace nejsou povoleny!')
       return
     }
 
+    // Pokud jsme na iOS, použijeme alert místo notifikace
+    if (/iPhone|iPad|iPod/.test(navigator.userAgent)) {
+      switch(type) {
+        case 'week':
+          alert('📅 Blíží se deadline\n\nTestovací úkol - Deadline je za týden')
+          break
+        case 'day':
+          alert('⏰ Zítra deadline!\n\nTestovací úkol - Deadline je zítra!')
+          break
+        case 'hour':
+          alert('🚨 Poslední hodina!\n\nTestovací úkol - Méně než hodina do deadlinu!')
+          break
+        case 'now':
+          alert('⚠️ DEADLINE PRÁVĚ TEĎ!\n\nTestovací úkol - Termín vypršel!')
+          break
+      }
+      return
+    }
+
+    // Pro ostatní zařízení použijeme standardní notifikace
     const testTask = {
       id: Date.now(),
       title: "Testovací úkol",
