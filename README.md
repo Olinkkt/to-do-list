@@ -1,36 +1,126 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# To-Do List Aplikace
 
-## Getting Started
+Moderní webová aplikace pro správu úkolů s podporou PWA (Progressive Web App) a pokročilými funkcemi.
 
-First, run the development server:
+## 🚀 Funkce
+
+- ✅ Správa úkolů s prioritami a deadliny
+- 📱 PWA - možnost instalace na mobil/desktop
+- 🔔 Push notifikace pro deadliny (kromě iOS)
+- 🏷️ Štítky a poznámky k úkolům
+- 🔍 Vyhledávání v úkolech
+- ⚡ Drag & Drop řazení
+- 🎨 Moderní responzivní design
+- 💾 Offline podpora
+- 📋 Podúkoly
+- 🔗 Externí odkazy
+
+## 🛠️ Tech Stack
+
+- **Framework:** Next.js 14
+- **Styling:** Tailwind CSS
+- **PWA:** next-pwa
+- **State Management:** React Hooks + Local Storage
+- **Drag & Drop:** react-beautiful-dnd
+- **Typescript:** Pro typovou bezpečnost
+- **Icons:** Heroicons
+
+## 📦 Instalace
+
+```bash
+# Naklonování repozitáře
+git clone https://github.com/Olinkkt/to-do-list.git
+cd to-do-list
+
+# Instalace závislostí
+npm install
+# nebo
+yarn install
+# nebo
+pnpm install
+```
+
+## 🚀 Spuštění
+
+### Vývojové prostředí
 
 ```bash
 npm run dev
-# or
+# nebo
 yarn dev
-# or
+# nebo
 pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Aplikace bude dostupná na `http://localhost:3000`
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+### Produkční build
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+```bash
+# Build aplikace
+npm run build
+# nebo
+yarn build
+# nebo
+pnpm build
 
-## Learn More
+# Spuštění produkční verze
+npm start
+# nebo
+yarn start
+# nebo
+pnpm start
+```
 
-To learn more about Next.js, take a look at the following resources:
+## 📱 PWA Instalace
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+### Desktop
+1. Otevřete aplikaci v Chrome/Edge/prohlížeči podporujícím PWA
+2. Klikněte na ikonu instalace v adresním řádku (nebo v menu)
+3. Potvrďte instalaci
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+### Android
+1. Otevřete aplikaci v Chrome
+2. Klikněte na "Přidat na plochu" v menu prohlížeče
+3. Následujte instrukce pro instalaci
 
-## Deploy on Vercel
+### iOS
+1. Otevřete aplikaci v Safari
+2. Klikněte na tlačítko sdílení
+3. Vyberte "Přidat na plochu"
+4. Potvrďte přidání
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+## 🔔 Notifikace
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+- **Desktop:** Plně podporovány ve všech moderních prohlížečích
+- **Android:** Plně podporovány v Chrome a PWA verzi
+- **iOS:** Nepodporováno (omezení platformy)
+
+## 💡 Použití
+
+1. **Přidání úkolu:**
+   - Klikněte na "Přidat úkol"
+   - Vyplňte název, popis, prioritu a případně deadline
+   - Můžete přidat štítky, poznámky a odkazy
+
+2. **Správa úkolů:**
+   - Označení jako dokončené: checkbox
+   - Úprava: tlačítko tužky
+   - Smazání: tlačítko koše
+   - Přesunutí: drag & drop (v režimu vlastního řazení)
+
+3. **Filtrování a řazení:**
+   - Vyhledávání v názvu a popisu
+   - Řazení podle priority, data vytvoření, deadlinu nebo vlastní pořadí
+
+4. **Hromadné akce:**
+   - Označení všech jako dokončené/nedokončené
+   - Smazání dokončených úkolů
+
+## 🤝 Úpravy
+
+Úpravy jsou vítány! Pro větší změny prosím nejdříve otevřete issue k diskuzi.
+
+## 📄 Licence
+
+MIT
